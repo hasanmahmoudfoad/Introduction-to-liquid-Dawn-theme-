@@ -1,0 +1,16 @@
+<div class="swiper-slide" {{ slide.shopify_attributes }}>
+    <div class="title mb-0"
+        style="color: {{ slide.settings.title_color }}; font-size: {{ slide.settings.title_size }}px" {% if section.settings.parallax %} data-swiper-parallax="-{{ section.settings.title_speed }}" {% endif %}>
+            {{ slide.settings.title }}
+    </div>
+    <div class="subtitle"
+        style="color: {{ slide.settings.subtitle_color }}; font-size: {{ slide.settings.subtitle_size }}px" {% if section.settings.parallax %} data-swiper-parallax="-{{ section.settings.subtitle_speed }}" 
+            {% endif %}>
+            {{ slide.settings.subtitle }}
+    </div>
+    <div class="description"
+        style="color: {{ slide.settings.description_color }}; font-size: {{ slide.settings.description_size }}px"
+        {% if section.settings.parallax %} data-swiper-parallax="-{{ section.settings.description_speed }}" {% endif %}>
+            {{ slide.settings.description }}
+    </div>
+</div>

@@ -1,0 +1,246 @@
+{% style %}
+
+    .{{ section.id }}{
+        padding-top:{{ section.settings.padding_top }}px;
+        padding-bottom:{{ section.settings.padding_bottom }}px;
+        background: var(--gradient-background);
+    }
+    .section-headding{
+        font-size: {{ section.settings.headding_size }}px;
+    }
+    .custom-product-card .star-icon svg{
+        fill: {{ section.settings.card_rating_color }};
+    }
+
+
+    @media only screen and (max-width: 600px){
+    .section-headding{
+            font-size: calc({{ section.settings.headding_size }}px * 0.6);
+        }
+    }
+
+{% endstyle %}
+
+
+
+{{ "custom-featured-collection.css" | asset_url | stylesheet_tag }}
+
+
+{% if section.settings.card_atc %}
+    {{ "quick-add.css" | asset_url | stylesheet_tag }}
+    <script src="{{ "product-form.js" | asset_url }}" defer="defer"></script>
+    <script src="{{ "quick-add.js" | asset_url }}" defer="defer"></script>
+{% endif %}
+
+
+<section class=" {{ section.id }} color-{{ section.settings.color_scheme }}">
+    <div class="container">
+        <h2 class="section-headding text-center">
+            {{ section.settings.headding }}<br>
+            {{ section.settings.collection.title | capitalize }}
+        </h2>
+
+        <div class="row my-5">
+            {% assign collection = section.settings.collection %}
+
+            {% for product in collection.products limit:4 %}
+            <div class="col-6 col-md-4 col-lg-3 py-5">
+                <div class="custom-product-card">
+                    <a class="text-decoration-none" href="{{ product.url }}">
+                        <div class="image-container">
+                            {% comment %} <img> {% endcomment %}
+                            {{ product.featured_image | image_url: width: 500 | image_tag: class:"img-fluid
+                            product_image", loading: "lazy" }}
+                        </div>
+                    </a>
+                    <div class="product-info">
+                        {% comment %} Product title {% endcomment %}
+                        <h3 class="product-title mb-4">{{ product.title }}</h3>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% comment %} Product price {% endcomment %}
+                            <h3 class="product-price mb-3">
+                                {% if product.compare_at_price > product.price %}
+                                    <span class="compare_at_price text-decoration-line-through">{{
+                                        product.compare_at_price |
+                                        money_without_trailing_zeros}}</span>
+                                    <span class="price text-danger">{{ product.price | money_without_trailing_zeros
+                                        }}</span>
+
+                                {% else %}
+                                    <span class="price">{{ product.price | money_without_trailing_zeros }}</span>
+                                {% endif %}
+
+                            </h3>
+
+                            {% comment %} rating {% endcomment %}
+                            <div class="mb-3 product-rating">
+                                {% if product.metafields.reviews.rating.value != null %}
+                                    <div class="ml-2">
+                                        <span class="star-icon">{{ 'star.svg' | inline_asset_content }}</span>
+                                        <span>{{ product.metafields.reviews.rating.value }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="no-reviews">no reviews yet</span>
+                                {% endif %}
+
+                            </div>
+                        </div>
+
+
+                        {% comment %} Quick add to cart {% endcomment %}
+                        <div class="card-buy-buttons">
+
+                            {% if section.settings.card_atc %}
+                                <product-form>
+                                    {% form 'product', product %}
+                                        <input type="hidden" name="id"
+                                            value="{{ product.selected_or_first_available_variant.id }}">
+                                        <button
+                                            class="quick-add__submit button button--full-width my-3  {% if section.settings.card_buyNow %}button--secondary{% else %}button--primary{% endif %}"
+                                            type="submit" name="add" id="{{ forloop.index }}_{{ product.id }}" {% unless
+                                            product.selected_or_first_available_variant.available %} disabled{% endunless %}>
+
+                                            {% unless product.selected_or_first_available_variant.available %}
+                                                Sold out
+                                            {% else %}
+                                                Add To Cart
+                                                {% render "loading-spinner" %}
+                                            {% endunless %}
+
+                                        </button>
+                                    {% endform %}
+                                </product-form>
+                            {% endif %}
+
+                            {% if section.settings.card_buyNow and product.selected_or_first_available_variant.available %}
+                                <div class="payment-wrapper">
+                                    {% form 'product', product %}
+                                        <input type="hidden" name="id"
+                                            value="{{ product.selected_or_first_available_variant.id }}">
+                                        {{ form | payment_button }}
+                                    {% endform %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+
+
+        </div>
+
+        <div class="view_all">
+            <a href="{{ section.settings.collection.url }}" class="text-decoration-none button  button--primary">View all btn</a>
+        </div>
+    </div>
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% schema %}
+{
+"name": "Custom collection",
+"settings": [
+{
+"type": "header",
+"content": "Section General Settings"
+},
+{
+"type": "color_scheme",
+"id": "color_scheme",
+"label": "Section color scheme"
+},
+{
+"type": "collection",
+"id": "collection",
+"label": "Collection"
+},
+{
+"type": "text",
+"id": "headding",
+"label": "Headding"
+},
+{
+"type": "range",
+"id": "headding_size",
+"label": "Main Headding Size",
+"min": 24,
+"max": 54,
+"step": 2,
+"unit": "px",
+"default": 34,
+"info": "On mobile phones, the font will be 40% smaller than desktop layout starting from screens of (991 pixels)"
+},
+{
+"type": "header",
+"content": "Product card Settings"
+},
+{
+"type": "checkbox",
+"id": "card_rating",
+"label": "Show star rating"
+},
+{
+"type": "color",
+"id": "card_rating_color",
+"label": "star color",
+"visible_if": "{{ section.settings.card_rating }}"
+},
+{
+"type": "checkbox",
+"id": "card_atc",
+"label": "Show quick add to cart"
+},
+{
+"type": "checkbox",
+"id": "card_buyNow",
+"label": "Show checkout buy buttons"
+},
+{
+"type": "header",
+"content": "Section spacing"
+},
+{
+"type": "range",
+"id": "padding_top",
+"label": "Spacing top",
+"min": 0,
+"max": 100,
+"step": 10,
+"unit": "px",
+"default": 20
+},
+{
+"type": "range",
+"id": "padding_bottom",
+"label": "Spacing bottom",
+"min": 0,
+"max": 100,
+"step": 10,
+"unit": "px",
+"default": 20
+}
+
+],
+"presets": [
+{
+"name": "Custom featured collection"
+}
+]
+}
+{% endschema %}

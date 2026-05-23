@@ -1,0 +1,227 @@
+
+{{ "custom-slider-styels.css" | asset_url | stylesheet_tag }}
+
+{% assign swiper_id = section.id | replace: "-", "_"  %}
+
+<!-- Swiper -->
+
+<div class="swiper mySwiper_{{ swiper_id }}">
+    <div class="parallax-bg" style="
+          {% if section.settings.bg_style == "radio_color" %} 
+            background: {{ section.settings.bg_color }}; 
+          {% else %}
+            background-image: url({{ section.settings.bg_image | image_url }}); 
+          {% endif %} " data-swiper-parallax=" -23%">
+    </div>
+    <div class="swiper-wrapper">
+
+        {% for slide in section.blocks %}
+            {% render "custom-slide",
+                slide: slide,
+                section: section
+            %}
+        {% endfor %}
+
+    </div>
+
+
+
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-pagination"></div>
+</div>
+
+
+
+
+
+<!-- Initialize Swiper -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let {{ swiper_id }} = new Swiper(".mySwiper_{{ swiper_id }}", {
+            speed: {{ section.settings.speed }},
+            parallax: {{ section.settings.parallax }},
+            autoplay: {{ section.settings.autoplay }},
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            }
+        });
+    });
+</script>
+
+{% schema %}
+    {
+        "name": "Custom slider section",
+        "settings": [
+                {
+                    "type": "header",
+                    "content": "General Slider Settings"
+                },
+                {
+                    "type": "checkbox",
+                    "id": "parallax",
+                    "label": "Parallax slider",
+                    "default" : false
+                },
+                {
+                    "type": "range",
+                    "id": "title_speed",
+                    "label": "Parallax title speed",
+                    "min": 100,
+                    "max": 500,
+                    "step": 50,
+                    "default": 200,
+                    "visible_if": "{{ section.settings.parallax }}"
+                },
+                {
+                    "type": "range",
+                    "id": "subtitle_speed",
+                    "label": "Parallax Subtitle speed",
+                    "min": 100,
+                    "max": 500,
+                    "step": 50,
+                    "default": 200,
+                    "visible_if": "{{ section.settings.parallax }}"
+                },
+                {
+                    "type": "range",
+                    "id": "description_speed",
+                    "label": "Parallax Description speed",
+                    "min": 100,
+                    "max": 500,
+                    "step": 50,
+                    "default": 200,
+                    "visible_if": "{{ section.settings.parallax }}"
+                },
+                {
+                    "type": "number",
+                    "id": "speed",
+                    "label": "Slider speed",
+                    "default" : 600
+                },
+                {
+                    "type": "checkbox",
+                    "id": "autoplay",
+                    "label": "Slider autoplay"
+                },
+                {
+                    "type": "radio",
+                    "id": "bg_style",
+                    "label": "Choose slider background style",
+                    "options": [
+                                {
+                                "label": "Background color",
+                                "value": "radio_color"
+                                },
+                                {
+                                "label": "Background image",
+                                "value": "radio_image"
+                                }
+                            ],
+                    "default": "radio_color"
+                },
+                {
+                    "type": "image_picker",
+                    "id": "bg_image",
+                    "label": "Background Image",
+                    "visible_if": "{{ section.settings.bg_style == 'radio_image' }}"
+                },
+                {
+                    "type": "color_background",
+                    "id": "bg_color",
+                    "label": "Background Color",
+                    "visible_if": "{{ section.settings.bg_style == 'radio_color' }}"
+                }
+        ],
+        "blocks": [
+            {
+                "type": "slide",
+                "name": "Slide",
+                "settings": [
+                    {
+                        "type": "header",
+                        "content": "Slide Title settings"
+                    },
+                    {
+                        "type": "text",
+                        "id": "title",
+                        "label": "Slide Title"
+                    },
+                    {
+                        "type": "color",
+                        "id": "title_color",
+                        "label": "Slide Title Color"
+                    },
+                    {
+                        "type": "range",
+                        "id": "title_size",
+                        "label": "Slide Title Size",
+                        "min": 35,
+                        "max": 75,
+                        "step": 5,
+                        "unit": "px",
+                        "default": 45
+                    },
+                    {
+                        "type": "header",
+                        "content": "slide Subtitle settings"
+                    },
+                    {
+                        "type": "text",
+                        "id": "subtitle",
+                        "label": "Subtitle"
+                    },
+                    {
+                        "type": "color",
+                        "id": "subtitle_color",
+                        "label": "Subtitle Color"
+                    },
+                    {
+                        "type": "range",
+                        "id": "subtitle_size",
+                        "label": "Slide Subtitle Size",
+                        "min": 15,
+                        "max": 55,
+                        "step": 5,
+                        "unit": "px",
+                        "default": 25
+                    },
+                    {
+                        "type": "header",
+                        "content": "Slide description settings"
+                    },
+                    {
+                        "type": "textarea",
+                        "id": "description",
+                        "label": "Slider Description"
+                    },
+                    {
+                        "type": "color",
+                        "id": "description_color",
+                        "label": "Slide Description Color"
+                    },
+                    {
+                        "type": "range",
+                        "id": "description_size",
+                        "label": "Slide Description Size",
+                        "min": 12,
+                        "max": 36,
+                        "step": 2,
+                        "unit": "px",
+                        "default": 16
+                    }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "Custom made Slider"
+            }
+        ]
+    }
+{% endschema %}

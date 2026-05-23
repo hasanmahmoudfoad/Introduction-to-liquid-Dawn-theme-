@@ -1,0 +1,175 @@
+
+{% style %} 
+
+    .{{ section.id }}.section-wrapper{
+        background: {{ section.settings.section_bg_color }};
+        padding: 5rem 0;
+    }
+
+    .{{ section.id }} .headding{
+        font-size: {{ section.settings.headding_size }}px;
+        color: {{ section.settings.headding_color }};
+    }
+    .{{ section.id }} .sub-headding{
+        font-size: {{ section.settings.sub_headding_size }}px;
+        color: {{ section.settings.sub_headding_color }};
+        margin: 2rem 0;
+    }
+    .{{ section.id }} .button{
+        font-size: {{ section.settings.url_size }}px;
+        color: {{ section.settings.url_color }};
+        background-color:{{ section.settings.url_bg_color }};
+    }
+    .{{ section.id }} .button:after{
+        content:none;
+    }
+    .{{ section.id }} .hero-img{
+        margin:2rem 0;
+    }
+{% endstyle %}
+
+{% assign settings = section.settings %}
+
+
+<section class="{{ section.id }} section-wrapper ">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-7">
+                <h2 class="headding">{{ settings.headding }}</h2>
+                <div class="sub-headding">{{ settings.sub_headding }}</div>
+                <a class="button border-0 rounded-pill" href="{{ settings.url }}">{{ settings.url_text }}</a>
+            </div>
+            <div class="col-12 col-md-5">
+                <img class="img-fluid hero-img" src="{{ settings.hero_image | image_url }}">
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+{% schema %}
+    {
+    
+        "name" : "Custom hero section",
+        "settings": [
+            
+            {
+                "type": "color_background",
+                "id": "section_bg_color",
+                "label": "Section background color"
+            },
+            {
+                "type": "image_picker",
+                "id": "hero_image",
+                "label": "Main hero image"
+            },
+
+
+
+            {
+                "type": "header",
+                "content": "Main headding settings"
+            },
+            {
+                "type": "text",
+                "id": "headding",
+                "label": "Main headding"
+            },
+            {
+                "type": "color",
+                "id": "headding_color",
+                "label": "Main headding color"
+            },
+            {
+                "type": "range",
+                "id": "headding_size",
+                "label": "Main headding size",
+                "min": 35,
+                "max": 75,
+                "step": 5,
+                "unit": "px",
+                "default":40
+            },
+            
+
+
+
+            {
+                "type": "header",
+                "content": "Sub-headding settings"
+            },
+            {
+                "type": "textarea",
+                "id": "sub_headding",
+                "label": "Sub-headding"
+            },
+            {
+                "type": "color",
+                "id": "sub_headding_color",
+                "label": "Sub-headding color"
+            },
+            {
+                "type": "range",
+                "id": "sub_headding_size",
+                "label": "Sub-headding size",
+                "min": 14,
+                "max": 35,
+                "step": 1,
+                "unit": "px",
+                "default":20
+            },
+            
+
+
+
+            {
+                "type": "header",
+                "content": "Button settings"
+            },
+            {
+                "type": "text",
+                "id": "url_text",
+                "label": "Button text"
+            },
+            {
+                "type": "url",
+                "id": "url",
+                "label": "Button url"
+            },
+            {
+                "type": "color",
+                "id": "url_color",
+                "label": "Button text color"
+            },
+            {
+                "type": "color",
+                "id": "url_bg_color",
+                "label": "Button background color"
+            },
+            {
+                "type": "range",
+                "id": "url_size",
+                "label": "Button text size",
+                "min": 12,
+                "max": 35,
+                "step": 1,
+                "unit": "px",
+                "default":20
+            }
+            
+
+        ],
+        "presets": [
+            {
+                "name": "Custom hero image"
+            }
+        ]
+
+
+    }
+{% endschema %}
