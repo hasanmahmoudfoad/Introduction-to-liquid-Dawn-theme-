@@ -1,0 +1,273 @@
+{% style %}
+.{{ section.id }} {
+padding-top: {{ section.settings.padding_top }}px;
+padding-bottom: {{ section.settings.padding_bottom }}px;
+background: var(--gradient-background);
+}
+
+.section-heading {
+font-size: {{ section.settings.headding_size }}px;
+}
+
+.custom-product-card .star-icon svg {
+fill: {{ section.settings.card_rating_color }};
+}
+
+
+@media only screen and (max-width: 600px) {
+.section-heading {
+font-size: calc({{ section.settings.headding_size }}px * 0.6);
+}
+}
+{% endstyle %}
+
+{{ "custom-featured-product.css" | asset_url | stylesheet_tag }}
+
+{% assign swiper_id = section.id | replace: "-", "_"  %}
+{% assign featured_product = section.settings.product %}
+
+
+{% if featured_product != blank %}
+<section 
+    class="{{ section.id }} color-{{ section.settings.color_scheme }}"
+    data-product-type="{{ featured_product.metafields.custom.bundled_product }}"
+ >
+    <div class="container">
+        {% if section.settings.headding != blank %}
+            <h2 class="section-heading text-center">
+                {{ section.settings.headding }}
+            </h2>
+        {% endif %}
+
+        <div class="row my-5 justify-content-center">
+            <div class="col-12 col-md-6 col-lg-4 py-5">
+                <div class="custom-product-card">
+                
+                    <div class="swiper product-media-swiper mySwiper_{{ swiper_id }}">
+                        <div class="swiper-wrapper">
+                                {% for media in featured_product.media %}
+                                    <div class="swiper-slide" data-media-id="{{ media.id }}" >
+                                    {% if media.media_type == 'model' %}
+                                        {{ media | model_viewer_tag: class:"pr-3d-model" }}
+                                    {% else %} 
+                                    <a class="text-decoration-none" href="{{ featured_product.url }}">
+                                        <div class="image-container">
+                                            {{ media | image_url: width: 500 | image_tag: class: "img-fluid
+                                            product_image", loading: "lazy", alt: featured_product.title }}
+                                        </div>
+                                    </a>
+                                    {% endif %}
+                                    </div>
+                                {% endfor %}
+                        </div>
+
+                        <div class="swiper-button-prev"></div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-pagination"></div>
+                    </div>
+                         
+                 
+
+                    <div class="product-info">
+                        <h3 class="product-title mb-4">{{ featured_product.title }}</h3>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="product-price mb-3">
+                                {% if featured_product.compare_at_price > featured_product.price %}
+                                    <span class="compare_at_price text-decoration-line-through">
+                                        {{ featured_product.compare_at_price | money_without_trailing_zeros }}
+                                    </span>
+                                    <span class="price text-danger">
+                                        {{ featured_product.price | money_without_trailing_zeros }}
+                                    </span>
+                                {% else %}
+                                    <span class="price">{{ featured_product.price | money_without_trailing_zeros }}</span>
+                                {% endif %}
+                            </h3>
+
+                            {% if section.settings.card_rating %}
+                                <div class="mb-3 product-rating">
+                                    {% if featured_product.metafields.reviews.rating.value != null %}
+                                        <div class="ml-2">
+                                            <span class="star-icon">{{ 'star.svg' | inline_asset_content }}</span>
+                                            <span>{{ featured_product.metafields.reviews.rating.value }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="no-reviews">no reviews yet</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+
+
+                            {% assign is_bundled_product = featured_product.metafields.custom.bundled_product.value %}
+                            {% assign bundle_products = featured_product.metafields.custom.containing_products.value %}
+
+                            {% if is_bundled_product and bundle_products != blank %}
+                            {% capture bundle_contains %}
+                                {% for product_item_variant in bundle_products %}
+                                    {{ product_item_variant.title }}{% unless forloop.last %}||{% endunless %}
+                                {% endfor %}
+                            {% endcapture %}
+
+                            <input type="hidden" data-bundle-contains value="{{ bundle_contains | strip_newlines | strip }}">
+                            {% endif %}
+                        
+                            <div class="my-3 d-flex align-items-center gap-3">
+                                <label for="quantity-{{ featured_product.id }}" class="form-label fs-4">Quantity: </label>
+                                <input type="number" id="quantity-{{ featured_product.id }}" name="quantity" class="form-control p-3 fs-4" value="1" min="1">
+                            </div>                               
+                            
+                            {% if featured_product.has_only_default_variant %}
+                                <input type="hidden" name="id" value="{{ featured_product.selected_or_first_available_variant.id }}">
+                            {% else %}
+                                <select class="form-select fs-3 my-3" name="id" >
+                                    {% for variant in featured_product.variants %}
+                                        <option value="{{ variant.id }}" data-price="{{ variant.price | money }}" 
+                                        data-media-id="{% if variant.featured_media %}{{ variant.featured_media.id }}{% endif %}">
+                                            {{ variant.title }} - {{ variant.price | money }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
+
+                            {% if featured_product.metafields.custom.warranty.value != blank %}
+                                <select class="form-select fs-3 my-3" name="warranty" data-warranty-selector>
+                                    <option value="" data-price="">No warranty</option>
+                                    {% for warranty_item in featured_product.metafields.custom.warranty.value %}
+                                        {% assign warranty_variant = warranty_item.selected_or_first_available_variant %}
+                                        <option value="{{ warranty_variant.id }}" data-price="{{ warranty_variant.price | money }}">
+                                            {{ warranty_item.title }} - {{ warranty_variant.price | money }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
+
+                            <button data-add-to-cart type="button" id="{{ featured_product.id }}" class="quick-add__submit button button--full-width my-3 button--primary"
+                            {% unless featured_product.selected_or_first_available_variant.available %} disabled{% endunless %}
+                            >
+                                {% unless featured_product.selected_or_first_available_variant.available %}
+                                    Sold out
+                                {% else %}
+                                    Add To Cart
+                                {% endunless %}
+                            </button>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</section>
+{% endif %}
+
+{% assign featured_product_slider = swiper_id %}
+<script>
+    const productSlider = `{{ featured_product_slider }}`;
+    
+     document.addEventListener('DOMContentLoaded', () => {
+         window.productSlider = new Swiper(".mySwiper_{{ swiper_id }}", {
+            slidesPerView: 1,
+            spaceBetween: 16,
+            allowTouchMove: false,
+            autoHeight: true,
+            pagination: {
+            el: '.swiper-pagination',
+            clickable: true
+            },
+
+            navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev'
+            }
+        });
+    });
+</script>
+
+<script src="{{ 'custom-featured-product.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+"name": "Custom featured product",
+"settings": [
+{
+"type": "header",
+"content": "Section General Settings"
+},
+{
+"type": "color_scheme",
+"id": "color_scheme",
+"label": "Section color scheme"
+},
+{
+"type": "product",
+"id": "product",
+"label": "Product"
+},
+{
+"type": "text",
+"id": "headding",
+"label": "Heading"
+},
+{
+"type": "range",
+"id": "headding_size",
+"label": "Main heading size",
+"min": 24,
+"max": 54,
+"step": 2,
+"unit": "px",
+"default": 34
+},
+{
+"type": "header",
+"content": "Product card settings"
+},
+{
+"type": "checkbox",
+"id": "card_rating",
+"label": "Show star rating"
+},
+{
+"type": "color",
+"id": "card_rating_color",
+"label": "Star color",
+"visible_if": "{{ section.settings.card_rating }}"
+},
+{
+"type": "header",
+"content": "Section spacing"
+},
+{
+"type": "range",
+"id": "padding_top",
+"label": "Spacing top",
+"min": 0,
+"max": 100,
+"step": 10,
+"unit": "px",
+"default": 20
+},
+{
+"type": "range",
+"id": "padding_bottom",
+"label": "Spacing bottom",
+"min": 0,
+"max": 100,
+"step": 10,
+"unit": "px",
+"default": 20
+}
+],
+"presets": [
+{
+"name": "Custom featured product"
+}
+]
+}
+{% endschema %}

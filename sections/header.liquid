@@ -75,16 +75,50 @@
     }
   }
 </style>
+    {% if request.page_type == 'product' and section.settings.show_stickey_atc %}
+     {{ 'sticky-atc-button.css' | asset_url | stylesheet_tag }}
+    {% endif %}
+
+       
 
 {%- style -%}
+
   .header {
     padding: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px 3rem {{ section.settings.padding_bottom | times: 0.5 | round: 0 }}px 3rem;
+    {% if request.page_type == 'product' and section.settings.show_stickey_atc %}position: relative;{% endif %}
   }
-
+  {% if request.page_type == 'product' and section.settings.show_stickey_atc %}
+    .sticky-atc__title{
+      font-size: {{ section.settings.sticky_atc_title_size }}px;
+    }
+    .sticky-submit-button{
+      font-size: {{ section.settings.sticky_atc_button_size }}px;
+    }
+  {% endif %}
   .section-header {
     position: sticky; /* This is for fixing a Safari z-index issue. PR #2147 */
     margin-bottom: {{ section.settings.margin_bottom | times: 0.75 | round: 0 }}px;
   }
+
+  {% if request.page_type == 'product' and section.settings.show_stickey_atc %}
+     @media only screen and (max-width: 991px){
+       .sticky-atc__title{
+          font-size: calc({{ section.settings.sticky_atc_title_size }}px * {{ section.settings.sticky_atc_font_size_multiplier_tablets }});
+        }
+        .sticky-submit-button, .sticky-submit-button *{
+          font-size: calc({{ section.settings.sticky_atc_button_size }}px * {{ section.settings.sticky_atc_font_size_multiplier_tablets }}) !important;
+        }
+    }
+    @media only screen and (max-width: 500px){
+       .sticky-atc__title{
+          font-size: calc({{ section.settings.sticky_atc_title_size }}px * {{ section.settings.sticky_atc_font_size_multiplier_mobile }});
+        }
+        .sticky-submit-button, .sticky-submit-button *{
+          font-size: calc({{ section.settings.sticky_atc_button_size }}px * {{ section.settings.sticky_atc_font_size_multiplier_mobile }}) !important;
+        }
+    }
+   
+  {% endif %}
 
   @media screen and (min-width: 750px) {
     .section-header {
@@ -302,6 +336,75 @@
         {%- endif -%}
       </a>
     </div>
+
+    
+      {% if request.page_type == 'product' and section.settings.show_stickey_atc %}
+
+        <div id="StickyATC-{{ section.id }}" class="sticky-atc sticky-atc--{{ section.settings.stickey_atc_position }}" data-sticky-atc >
+          <div class="sticky-atc__inner">
+            {% if product.featured_image %}
+              {{
+                product.featured_image
+                | image_url: width: 100
+                | image_tag:
+                  class: 'sticky-atc__image small-screen-hide',
+                  loading: 'lazy'
+              }}
+            {% endif %}
+
+            <div class="sticky-atc__title small-screen-hide">
+              {{ product.title }}
+            </div>
+
+              <product-form>
+                  {% form 'product', product %}
+                      <input type="hidden" name="id"
+                          value="{{ product.selected_or_first_available_variant.id }}">
+                      <button class="quick-add__submit sticky-submit-button button" type="submit" name="add" data-sticky-atc-button id="StickyProductSubmitButton-{{ section.id }}"
+                        {% unless product.selected_or_first_available_variant.available %}
+                          disabled
+                        {% endunless %}
+                      >
+                          {% unless product.selected_or_first_available_variant.available %}
+                              Sold out
+                          {% else %}
+                            {% render "loading-spinner" %}
+                            Add To Cart
+                            <span class="mx-3" >-</span> 
+                            <div class="sticky-atc__price">
+                              {% render 'price', product: product, use_variant: true %}
+                            </div>
+                          {% endunless %}
+
+                      </button>
+                  {% endform %}
+              </product-form>
+          </div>
+        </div>
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const stickyBar = document.querySelector('[data-sticky-atc]');
+
+            const originalAddButton = document.querySelector(
+              'main button[id^="ProductSubmitButton-"]'
+            );
+
+            if (!stickyBar || !originalAddButton) return;
+
+            const observer = new IntersectionObserver(([entry]) => {
+              const passedButton =
+                !entry.isIntersecting &&
+                entry.boundingClientRect.bottom < 0;
+
+              stickyBar.classList.toggle('is-visible', passedButton);
+            });
+
+            observer.observe(originalAddButton);
+          });
+        </script>
+      {% endif %}
+
+
   </header>
 </{{ header_tag }}>
 
@@ -623,6 +726,60 @@
       "unit": "px",
       "label": "t:sections.header.settings.margin_bottom.label",
       "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Sticky Bar ATC Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stickey_atc",
+      "default": false,
+      "label": "Show stickey add to cart button In the PDP"
+    },
+    {
+      "type": "range",
+      "id": "sticky_atc_title_size",
+      "label": "Product title font size",
+      "min": 12,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.show_stickey_atc }}"
+    },
+    {
+      "type": "range",
+      "id": "sticky_atc_button_size",
+      "label": "Button font size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 15,
+      "visible_if": "{{ section.settings.show_stickey_atc }}"
+    },
+    {
+      "type": "range",
+      "id" : "sticky_atc_font_size_multiplier_tablets",
+      "label" : "Sticky atc font size multiplier on tablets",
+      "min": 0.5,
+      "max": 0.9,
+      "step": 0.1,
+      "visible_if": "{{ section.settings.show_stickey_atc }}",
+      "default": 0.7,
+      "info" : "On tablet devices, the font size of the ATC bar will be multiplied by this number, the effect will take place below screens of (991 pixels)"
+    },
+    {
+      "type": "range",
+      "id" : "sticky_atc_font_size_multiplier_mobile",
+      "label" : "Sticky atc font size multiplier on mobile",
+      "min": 0.4,
+      "max": 0.8,
+      "step": 0.1,
+      "visible_if": "{{ section.settings.show_stickey_atc }}",
+      "default": 0.6,
+      "info" : "On mobile phones, the font size of the ATC bar will be multiplied by this number, the effect will take place below screens of (500 pixels)"
     },
     {
       "type": "header",
